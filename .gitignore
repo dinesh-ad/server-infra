@@ -1,0 +1,8 @@
+# Traefik TLS certificates
+traefik/acme.json
+
+# Environment files
+.env
+
+# OS generated files
+.DS_Store
