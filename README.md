@@ -60,3 +60,13 @@ vps-infra repo
 ## Goal
 
 Keep server infrastructure **version controlled, reproducible, and independent of any single application.**
+
+
+  Cloudflare
+     ↓
+   Traefik
+     ↓
+ ┌─────────────┬─────────────┐
+ │             │             │
+nexdue.app   api.nexdue.app  future-app
+ frontend      backend
