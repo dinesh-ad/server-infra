@@ -13,7 +13,7 @@ networks:
 
 services:
   socket-proxy:
-    image: ghcr.io/tecnativa/docker-socket-proxy:0.4.2
+    image: tecnativa/docker-socket-proxy:v0.4.1
     container_name: socket-proxy
     restart: unless-stopped
     networks:
