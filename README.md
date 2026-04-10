@@ -1,126 +1,79 @@
-# Server Infrastructure
+# server-infra
 
-> Shared server-level infrastructure for the production VPS.
-> Hosts **Nexdue** and future SaaS applications.
+Shared server infrastructure for the production VPS.
+Hosts Scrift, Nexdue, and future applications.
 
----
+## What this repo manages
 
-## What This Repo Does
+Server-level infrastructure only — not application code.
+App repos plug into this infrastructure but do not control it.
 
-This repository manages **shared infrastructure** that runs on the VPS — not application code.
-Application repos (like `nexdue`) plug into this infrastructure but do not control it.
+## Structure
+server-infra/
+├── traefik/                  ← Reverse proxy + TLS (see traefik/README.md)
+│   ├── docker-compose.yml
+│   ├── traefik.yml
+│   └── .env.example
+├── scripts/
+│   └── bootstrap.sh          ← Run once on a fresh server
+├── .gitignore
+└── README.md
 
----
-
-## Components
-
-| Component              | Description                                      |
-|------------------------|--------------------------------------------------|
-| `traefik/`             | Reverse proxy — handles routing and TLS          |
-| Let's Encrypt (ACME)   | Auto TLS via Traefik, stored in `acme.json`      |
-| `traefik-public`       | Shared Docker network for all app containers     |
-| _(planned)_            | Monitoring, logging, alerting                    |
-
----
-
-## Traffic Flow
-
-```
-  Internet
-     │
-     ▼
- Cloudflare
- (DNS + DDoS protection)
-     │
-     ▼
- ┌─────────────────────────────────────────┐
- │              VPS (Ubuntu)               │
- │                                         │
- │  ┌──────────────────────────────────┐   │
- │  │            Traefik               │   │
- │  │  (reverse proxy + TLS via ACME)  │   │
- │  └──────┬───────────────┬───────────┘   │
- │         │               │               │
- │         ▼               ▼               │
- │  ┌─────────────┐ ┌─────────────┐        │
- │  │  nexdue.app │ │  future-app │  ...   │
- │  │  (frontend) │ │             │        │
- │  └─────────────┘ └─────────────┘        │
- │                                         │
- │  All containers share: traefik-public   │
- └─────────────────────────────────────────┘
-```
-
----
-
-## Server Layout
-
-```
+## Server layout
 /opt/
- ├── infra/                  ← this repository
- │    └── traefik/
- │         ├── docker-compose.yml
- │         └── acme.json     (server only — never committed)
- │
- └── nexdue/                 ← Nexdue application repo
-      └── docker-compose.yml (attaches to traefik-public)
+├── server-infra/             ← this repository
+│   ├── traefik/
+│   └── scripts/
+├── scrift/                   ← Scrift application
+├── nexdue/                   ← Nexdue application
+└── github-runner/            ← Self-hosted GitHub Actions runners
 
-/<future-app>/              ← future SaaS applications
+## How it works
+Internet → Cloudflare → Traefik → app containers
+
+Traefik owns `traefik-public` — the shared Docker network.
+All app containers join it as `external: true`.
+Traefik discovers them automatically via Docker labels.
+
+## Fresh server setup
+
+```bash
+git clone git@github.com:dinesh-ad/server-infra.git /opt/server-infra
+cd /opt/server-infra
+bash scripts/bootstrap.sh
+cd traefik
+docker compose up -d
 ```
 
----
+Then start app stacks. Traefik auto-routes immediately.
 
-## Startup Order
+## Startup order
 
+Traefik stack (this repo)
+App stacks (scrift, nexdue, etc.)
+
+
+Traefik must be running first — it owns `traefik-public`.
+
+## Deploying changes
+
+Manual only — no CI/CD on this repo by design.
+
+```bash
+cd /opt/server-infra
+git pull
+# if traefik.yml changed:
+cd traefik && docker compose up -d
+# Docker label changes on app containers take effect automatically
 ```
-  1. Deploy this repo to /opt/infra
-         │
-         ▼
-  2. Start Traefik
-     docker compose up -d
-         │
-         ▼
-  3. Start application stacks
-     (nexdue, future apps)
-         │
-         ▼
-  4. Traefik auto-routes traffic
-     and provisions TLS certificates
-```
-
-> Traefik **must be running** before any app stack that depends on `traefik-public`.
-
----
-
-## App ↔ Infra Relationship
-
-```
-  server-infra (this repo)          nexdue (app repo)
-  ┌──────────────────────┐          ┌──────────────────────┐
-  │  traefik/            │          │  docker-compose.yml  │
-  │  └ docker-compose.yml│          │  └ networks:         │
-  │  manages:            │◄─────────│    traefik-public    │
-  │    • reverse proxy   │          │  labels:             │
-  │    • TLS certs       │          │    traefik.enable=true│
-  │    • shared network  │          └──────────────────────┘
-  └──────────────────────┘
-```
-
----
 
 ## Security
 
-The following files **must never be committed** — they exist on the server only:
+| File | Location | Never commit |
+|---|---|---|
+| `traefik/.env` | Server only | ✅ |
+| `traefik/acme.json` | Server only | ✅ |
 
-```
-acme.json       ← TLS private keys (auto-generated by Traefik)
-.env            ← environment secrets
-```
+## Planned
 
-Both are listed in `.gitignore`.
-
----
-
-## Goal
-
-Keep server infrastructure **version controlled, reproducible, and decoupled from any single application.**
+- `monitoring/` — metrics and alerting

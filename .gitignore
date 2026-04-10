@@ -1,8 +1,9 @@
-# Traefik TLS certificates
+# Traefik TLS certificates — server only, never commit
 traefik/acme.json
 
-# Environment files
-.env
+# Traefik environment secrets — server only, never commit
+traefik/.env
 
 # OS generated files
 .DS_Store
+Thumbs.db
