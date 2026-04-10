@@ -34,6 +34,7 @@ services:
     read_only: true
     tmpfs:
       - /run
+      - /tmp
 
   traefik:
     image: traefik:v3.6.1
