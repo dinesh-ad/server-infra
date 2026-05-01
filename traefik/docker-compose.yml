@@ -54,6 +54,9 @@ services:
       - ./acme.json:/letsencrypt/acme.json
     env_file:
       - .env
+    environment:
+      # Lego Cloudflare provider reads CF_DNS_API_TOKEN; compose maps a domain-scoped name from .env.
+      CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN_NEXDUE}
     security_opt:
       - no-new-privileges:true
     logging:
