@@ -55,8 +55,7 @@ services:
     env_file:
       - .env
     environment:
-      # Lego Cloudflare provider reads CLOUDFLARE_DNS_API_TOKEN; compose maps a domain-scoped name from .env.
-      CLOUDFLARE_DNS_API_TOKEN: ${CF_DNS_API_TOKEN_NEXDUE}
+      CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN_NEXDUE}
     security_opt:
       - no-new-privileges:true
     logging:
