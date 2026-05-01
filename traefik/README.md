@@ -32,7 +32,7 @@ CF_DNS_API_TOKEN_NEXDUE=your_cloudflare_dns_edit_token
 
 `CF_DNS_API_TOKEN_NEXDUE` is a Cloudflare **API token** (not the global API key) with **Zone → DNS → Edit**, scoped to **nexdue.app** only. Create it at [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens).
 
-At runtime, `docker-compose.yml` maps that variable to **`CF_DNS_API_TOKEN`**, which is the environment variable [Lego’s Cloudflare provider](https://go-acme.github.io/lego/dns/cloudflare/) reads for DNS-01. Use one token per zone in `.env` (e.g. `CF_DNS_API_TOKEN_OTHERDOMAIN=…`) and add a matching line under the Traefik service `environment` block when you host more domains from this stack.
+At runtime, `docker-compose.yml` maps that variable to **`CLOUDFLARE_DNS_API_TOKEN`**, which is the environment variable [Lego’s Cloudflare provider](https://go-acme.github.io/lego/dns/cloudflare/) reads for DNS-01. Use one token per zone in `.env` (e.g. `CF_DNS_API_TOKEN_OTHERDOMAIN=…`) and add a matching line under the Traefik service `environment` block when you host more domains from this stack.
 
 Then start:
 
@@ -63,7 +63,7 @@ docker compose up -d --force-recreate traefik
 
 | File | Committed | Purpose |
 |---|---|---|
-| `docker-compose.yml` | ✅ | Stack definition; maps `CF_DNS_API_TOKEN_NEXDUE` → `CF_DNS_API_TOKEN` for Lego |
+| `docker-compose.yml` | ✅ | Stack definition; maps `CF_DNS_API_TOKEN_NEXDUE` → `CLOUDFLARE_DNS_API_TOKEN` for Lego |
 | `traefik.yml` | ✅ | Static config |
 | `.env.example` | ✅ | Env var template |
 | `.env` | ❌ | Real values — server only |
